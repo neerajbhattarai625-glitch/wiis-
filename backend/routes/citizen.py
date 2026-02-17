@@ -142,6 +142,21 @@ async def request_pickup(request: PickupRequestSchema, db: AsyncSession = Depend
         impact_co2=0.0
     )
     db.add(activity)
+    
+    # Broadcast to collectors
+    from routes.realtime import manager
+    import json
+    msg = json.dumps({
+        "type": "pickup_notice",
+        "user_id": request.user_id,
+        "waste_type": request.waste_type,
+        "amount": request.amount_approx,
+        "location": request.location
+    })
+    # We use create_task to not block the request
+    import asyncio
+    asyncio.create_task(manager.broadcast_to_collectors(msg))
+    
     await db.commit()
     
     return {"message": "Pickup requested successfully", "id": new_request.id}

@@ -215,3 +215,36 @@ async def update_settings(settings: SystemSettingsSchema, admin: User = Depends(
     
     await db.commit()
     return {"message": "System settings updated"}
+
+# --- Verification Management ---
+@router.get("/verify/pending", response_model=List[UserSchema])
+async def get_pending_verifications(admin: User = Depends(verify_admin), db: AsyncSession = Depends(get_db)):
+    # List users who have uploaded an ID but are not yet verified
+    result = await db.execute(
+        select(User).filter(User.id_photo_url.isnot(None), User.is_verified == False)
+    )
+    users = result.scalars().all()
+    return users
+
+@router.post("/verify/approve/{user_id}")
+async def approve_user(user_id: str, admin: User = Depends(verify_admin), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).filter(User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.is_verified = True
+    await db.commit()
+    return {"message": "User verified successfully"}
+
+@router.post("/verify/reject/{user_id}")
+async def reject_user(user_id: str, admin: User = Depends(verify_admin), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).filter(User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Optional: Delete the invalid photo or the user? For now just clear the photo
+    user.id_photo_url = None
+    await db.commit()
+    return {"message": "User ID rejected"}

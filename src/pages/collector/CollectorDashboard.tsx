@@ -5,8 +5,35 @@ import { TrendingUp, MapPin, CheckCircle, Clock, Award, Fuel } from 'lucide-reac
 import { useNavigate } from 'react-router-dom';
 import LogoutButton from '@/components/common/LogoutButton';
 
+import { useEffect } from 'react';
+import { toast } from 'sonner';
+
 const CollectorDashboard = () => {
     const navigate = useNavigate();
+
+    // WebSocket for real-time notifications
+    useEffect(() => {
+        const userId = 'collector_demo'; // In real app, get from auth context
+        const WS_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace('http', 'ws');
+
+        const socket = new WebSocket(`${WS_URL}/api/realtime/ws/${userId}`);
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'pickup_notice') {
+                toast.info(`New Pickup Request!`, {
+                    description: `${data.waste_type} collection needed at ${data.location.address}`,
+                    action: {
+                        label: 'View Map',
+                        onClick: () => navigate('/collector/route')
+                    },
+                    duration: 10000,
+                });
+            }
+        };
+
+        return () => socket.close();
+    }, []);
 
     const stats = {
         todayPickups: 12,

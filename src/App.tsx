@@ -32,6 +32,8 @@ import AdminFeedbackManagement from './pages/admin/AdminFeedbackManagement';
 import AdminAIInsights from './pages/admin/AdminAIInsights';
 import AdminLeaderboard from './pages/admin/AdminLeaderboard';
 import AdminSystemSettings from './pages/admin/AdminSystemSettings';
+import AdminVerification from './pages/admin/AdminVerification';
+import Signup from './pages/Signup';
 
 import { useEffect } from 'react';
 import Lenis from 'lenis';
@@ -291,6 +293,25 @@ function App() {
                 <AdminSystemSettings />
               </DashboardLayout>
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/verify"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <DashboardLayout role="admin">
+                <AdminVerification />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute>
+              <Signup />
+            </PublicRoute>
           }
         />
 

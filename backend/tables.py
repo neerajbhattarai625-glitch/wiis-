@@ -18,6 +18,12 @@ class User(Base):
     name = Column(String, nullable=True)
     credit_points = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Verification & OTP
+    is_verified = Column(Boolean, default=False)
+    id_photo_url = Column(String, nullable=True)
+    otp = Column(String, nullable=True)
+    otp_expiry = Column(DateTime, nullable=True)
 
 class UserSession(Base):
     __tablename__ = "sessions"

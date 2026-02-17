@@ -170,7 +170,7 @@ const Login = () => {
                         </form>
                     </CardContent>
                     <CardFooter className="justify-center text-sm text-muted-foreground">
-                        Don't have an account? <span className="text-primary font-medium ml-1 cursor-pointer hover:underline">Sign up</span>
+                        Don't have an account? <span onClick={() => navigate('/signup')} className="text-primary font-medium ml-1 cursor-pointer hover:underline">Sign up</span>
                     </CardFooter>
                 </Card>
             </motion.div>

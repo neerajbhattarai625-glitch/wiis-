@@ -10,11 +10,14 @@ class ConnectionManager:
         # Store active connections: user_id -> WebSocket
         self.active_connections: Dict[str, WebSocket] = {}
         self.admin_connections: List[WebSocket] = []
+        self.collector_connections: List[WebSocket] = []
 
     async def connect(self, websocket: WebSocket, client_id: str):
         await websocket.accept()
         if client_id.startswith("admin"):
             self.admin_connections.append(websocket)
+        elif client_id.startswith("collector"):
+            self.collector_connections.append(websocket)
         else:
             self.active_connections[client_id] = websocket
 
@@ -22,6 +25,9 @@ class ConnectionManager:
         if client_id.startswith("admin"):
             if websocket in self.admin_connections:
                 self.admin_connections.remove(websocket)
+        elif client_id.startswith("collector"):
+            if websocket in self.collector_connections:
+                self.collector_connections.remove(websocket)
         else:
             if client_id in self.active_connections:
                 del self.active_connections[client_id]
@@ -35,7 +41,13 @@ class ConnectionManager:
             try:
                 await connection.send_text(message)
             except:
-                # Handle stale connections
+                pass
+
+    async def broadcast_to_collectors(self, message: str):
+        for connection in self.collector_connections:
+            try:
+                await connection.send_text(message)
+            except:
                 pass
 
     async def broadcast_tracking_update(self, driver_id: str, location: dict):
