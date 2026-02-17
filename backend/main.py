@@ -12,26 +12,16 @@ app = FastAPI(title="Waste Management API")
 
 @app.on_event("startup")
 async def startup_event():
-    # Initialize Database Tables
-    await init_db()
-    # Start the live analytics broadcast in the background
-    asyncio.create_task(realtime.broadcast_live_stats())
+    # Only initialize DB in local dev. 
+    # In Vercel, we rely on the DB being ready.
+    if os.getenv("VERCEL") != "1":
+        await init_db()
+        asyncio.create_task(realtime.broadcast_live_stats())
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173", 
-        "http://localhost:5174", 
-        "http://localhost:5175",
-        "http://localhost:5176",
-        "http://localhost:5177",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
-        "http://127.0.0.1:5175",
-        "http://127.0.0.1:5176",
-        "http://127.0.0.1:5177",
-    ],
+    allow_origins=["*"], # Allow all for production demo simplicity, or restrict to vercel domains
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -93,9 +83,10 @@ app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
 app.include_router(blockchain.router, prefix="/api/blockchain", tags=["Blockchain"])
 app.include_router(realtime.router, prefix="/api/realtime", tags=["Realtime"])
 
-# Prometheus Metrics
-metrics_app = make_asgi_app()
-app.mount("/metrics", metrics_app)
+# Handle Prometheus metrics only if not in Vercel
+if os.getenv("VERCEL") != "1":
+    metrics_app = make_asgi_app()
+    app.mount("/metrics", metrics_app)
 
 # Custom Metrics
 REQUEST_COUNT = Counter("http_requests_total", "Total HTTP Requests", ["method", "endpoint", "status"])
