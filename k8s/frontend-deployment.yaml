@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wastewise-frontend
+  labels:
+    app: wastewise-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: wastewise-frontend
+  template:
+    metadata:
+      labels:
+        app: wastewise-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: wastewise-frontend:latest
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector:
+    app: wastewise-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
